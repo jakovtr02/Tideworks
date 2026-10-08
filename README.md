@@ -1,4 +1,4 @@
-# Tidewords v2 — progression edition
+# Tidewords — progression edition
 
 Open `index.html` with `styles.css` and `game.js` in the same folder, or use the separate self-contained `tidewords-v2.html` file.
 
