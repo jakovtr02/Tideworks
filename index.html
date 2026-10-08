@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#d8f5f2">
+  <meta name="description" content="Tidewords — a drifting ocean word search. Find hidden words before the tide rearranges the sea.">
+  <title>Tidewords · A drifting word search</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">≋</div>
+        <div>
+          <div class="eyebrow">YOUR DAILY DIP INTO WORDS</div>
+          <h1>Tide<span>words</span><span class="logo-dot">.</span></h1>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="how-button nav-item" id="mapBtn" type="button">🏝 Islands</button>
+        <button class="how-button nav-item" id="achievementsBtn" type="button">🏅 Badges</button>
+        <button class="how-button nav-item" id="closetBtn" type="button">🐚 Skins</button>
+        <button class="icon-button" id="soundBtn" type="button" aria-label="Enable sounds" aria-pressed="false" title="Toggle sounds">♫<span class="slash" aria-hidden="true">/</span></button>
+        <button class="icon-button" id="motionBtn" type="button" aria-label="Enable reduced motion" aria-pressed="false" title="Reduce animations">◌</button>
+        <button class="how-button" id="helpBtn" type="button">? <span>How to play</span></button>
+      </div>
+    </header>
+
+    <section class="voyage-panel" aria-label="Your persistent progression">
+      <div class="voyage-head"><div><span class="section-kicker">YOUR VOYAGE</span><strong id="levelLabel">Level 1</strong></div><div class="purse"><span>🐚 <b id="shellLabel">0</b> shells</span><span>● <b id="totalPearls">0</b> pearls</span></div></div>
+      <div class="xp-head"><span id="xpLabel">0 / 150 XP</span><span id="nextGoal">150 XP to level 2</span></div>
+      <div class="xp-track" role="progressbar" aria-label="Progress toward next player level"><div id="xpFill"></div></div>
+      <div class="goals-heading"><strong>Today's three goals</strong><small>Complete to earn 80 XP + 10 shells + a pearl</small></div>
+      <div class="daily-goals" id="goalList"></div>
+    </section>
+
+    <section class="game-toolbar" aria-label="Game settings">
+      <div class="setting-group"><label for="modeSelect">GAME MODE</label><select id="modeSelect"><option value="classic">Tide run</option><option value="chill">Chill mode</option><option value="daily">Daily puzzle</option></select></div>
+      <div class="setting-group"><label for="themeSelect">EXPLORE</label><select id="themeSelect"><option value="rainforest">🌿 Rainforest</option><option value="space">✦ Space</option><option value="kitchen">✳ Kitchen</option></select></div>
+      <div class="toolbar-spacer"></div>
+      <button id="newBtn" class="button button-secondary" type="button"><span aria-hidden="true">↻</span> New puzzle</button>
+    </section>
+
+    <section class="statsbar" aria-label="Round statistics">
+      <div class="stat"><span class="stat-icon" aria-hidden="true">✧</span><span class="stat-copy"><span class="stat-label">SCORE</span><strong id="scoreLabel">0</strong></span></div>
+      <div class="stat"><span class="stat-icon" aria-hidden="true">◷</span><span class="stat-copy"><span class="stat-label">TIME</span><strong id="timeLabel">00:00</strong></span></div>
+      <div class="stat"><span class="stat-icon pearl-icon" aria-hidden="true">●</span><span class="stat-copy"><span class="stat-label">PEARLS</span><strong id="pearlLabel">0</strong></span></div>
+      <div class="stat stat-streak"><span class="stat-icon" aria-hidden="true">♨</span><span class="stat-copy"><span class="stat-label">DAILY STREAK</span><strong id="streakLabel">0 days</strong></span></div>
+    </section>
+
+    <main class="game-layout">
+      <section class="board-panel" aria-label="Word search puzzle">
+        <div class="board-heading">
+          <div><span class="small-tag" id="roundBadge">🌿 RAINFOREST</span><h2>Find your flow<span class="heading-period">.</span></h2></div>
+          <div class="found-fraction"><strong id="foundLabel">0</strong><span id="wordTotal"> / 8 words</span></div>
+        </div>
+        <div class="round-modifier" id="modifierBadge" hidden></div>
+        <div class="board-outer">
+          <div class="board-waves" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="board-wrap" id="boardWrap">
+            <div class="letter-grid" id="grid" role="grid" aria-label="Ten by ten letter grid. Drag from the first to last letter, or use arrow keys and Enter to select a word."></div>
+            <div class="drift-overlay" id="driftOverlay" aria-hidden="true"></div>
+            <div class="warning-marker" id="warningMarker2" aria-hidden="true">〰</div>
+            <div class="warning-marker" id="warningMarker" aria-hidden="true">〰</div>
+          </div>
+        </div>
+        <div class="board-footer">
+          <span class="live-dot" aria-hidden="true"></span><span id="waveStatus">Next wave in 12s</span>
+          <span class="footer-instruction">Drag across letters · 8 directions</span>
+        </div>
+      </section>
+
+      <aside class="sidebar" aria-label="Puzzle clues and abilities">
+        <section class="side-card word-card">
+          <div class="card-heading"><div><span class="section-kicker">THE TREASURE MAP</span><h2>Words to find <span aria-hidden="true">✳</span></h2></div><span class="count-bubble" id="countBubble">0 / 8</span></div>
+          <div class="word-list" id="wordList" aria-live="off"></div>
+          <div class="tip"><span aria-hidden="true">✦</span> Words can run backwards and diagonally!</div>
+        </section>
+
+        <section class="side-card tide-card" id="tideCard">
+          <div class="card-heading"><div><span class="section-kicker">SET THE CURRENT</span><h2>Tide meter</h2></div><span class="tide-symbol" aria-hidden="true">≋</span></div>
+          <div class="tide-options" role="group" aria-label="Tide speed">
+            <button type="button" class="tide-option" data-tide="calm" aria-pressed="false"><strong>Calm</strong><span>1× score</span></button>
+            <button type="button" class="tide-option" data-tide="steady" aria-pressed="true"><strong>Steady</strong><span>1.5× score</span></button>
+            <button type="button" class="tide-option" data-tide="rough" aria-pressed="false"><strong>Rough</strong><span>2× score</span></button>
+          </div>
+          <div class="tide-bar" aria-hidden="true"><div id="tideBarFill"></div></div>
+          <p class="tide-description" id="tideDescription">A gentle shift every 12 seconds.</p>
+        </section>
+
+        <section class="side-card power-card">
+          <div class="card-heading"><div><span class="section-kicker">A LITTLE OCEAN MAGIC</span><h2>Pearl powers</h2></div><span class="pearl-decoration" aria-hidden="true">●</span></div>
+          <div class="power-options">
+            <button class="power-button" type="button" id="freezeBtn"><span class="power-glyph" aria-hidden="true">❄</span><span class="power-copy"><strong>Freeze the tide</strong><small>Pause the current for 10 seconds</small></span><span class="power-cost">● 1</span></button>
+            <button class="power-button" type="button" id="revealBtn"><span class="power-glyph" aria-hidden="true">✧</span><span class="power-copy"><strong>Reveal a letter</strong><small>Highlight an unfound word’s start</small></span><span class="power-cost">● 2</span></button>
+          </div>
+          <p class="power-footnote">Find two words within 5 seconds to earn a pearl.</p>
+        </section>
+
+        <section class="side-card mystery-card" id="mysteryCard">
+          <div class="mystery-top"><span class="section-kicker">HIDDEN IN THE DEEP</span><span class="mystery-stars" aria-hidden="true">✧ ✧</span></div>
+          <div id="mysteryLocked"><h2>One more secret...</h2><p><span id="mysteryRequirement">Find 6 of 8 words to unlock a bonus riddle.</span></p><div class="mystery-progress"><div id="mysteryProgressFill"></div></div></div>
+          <div id="mysteryRevealed" hidden><h2>Mystery word <span aria-hidden="true">✦</span></h2><p id="riddleText"></p><span class="bonus-tag">+ BONUS POINTS</span><button id="finishBtn" type="button" class="finish-button" hidden>Finish round →</button></div>
+        </section>
+      </aside>
+    </main>
+    <footer class="site-footer"><span>Made for curious minds & calm seas.</span><span>Catch words, not waves. ≋</span></footer>
+  </div>
+
+  <div id="levelSplash" class="level-splash" role="status" aria-live="polite"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div id="announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="modal-backdrop" id="progressModal" hidden>
+    <section class="modal progress-modal" role="dialog" aria-modal="true" aria-labelledby="progressTitle">
+      <button class="modal-close" id="closeProgressBtn" type="button" aria-label="Close progression">×</button>
+      <span class="section-kicker">A BIGGER OCEAN TO EXPLORE</span><h2 id="progressTitle">Explore the islands</h2>
+      <div class="progress-tabs" role="group" aria-label="Progression screens">
+        <button type="button" data-progress-tab="islands" aria-pressed="true">🏝 Islands</button>
+        <button type="button" data-progress-tab="achievements" aria-pressed="false">🏅 Badges</button>
+        <button type="button" data-progress-tab="closet" aria-pressed="false">🐚 Skins</button>
+      </div>
+      <div id="progressBody" class="progress-body"></div>
+    </section>
+  </div>
+  <div class="modal-backdrop" id="modifierModal" hidden>
+    <section class="modal modifier-modal" role="dialog" aria-modal="true" aria-labelledby="modifierTitle">
+      <span class="section-kicker">SPECIAL CURRENT APPROACHING</span><h2 id="modifierTitle">Modifier</h2>
+      <p id="modifierDescription"></p><button class="button button-primary" id="beginModifierBtn" type="button">Ride this wave →</button>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="helpModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <button class="modal-close" id="closeHelpBtn" type="button" aria-label="Close help">×</button>
+      <span class="section-kicker">A QUICK SEA GUIDE</span><h2 id="helpTitle">How to play</h2>
+      <p>Drag your finger or mouse from the first letter to the last. You can travel in any of eight directions, including backwards.</p>
+      <ul><li><strong>Progression:</strong> Clear sub-themes for mastery ranks, daily goals and shells. Level up to explore new islands and gain modifiers.</li><li><strong>Waves:</strong> A row or column shifts each tide. Letters from found words never move; unfound words are rewoven so the puzzle stays solvable.</li><li><strong>Pearls:</strong> Find two words within five seconds to earn one. Spend them on a freeze or a letter hint.</li><li><strong>Mystery:</strong> After finding six words, solve the bonus riddle and find its hidden answer.</li><li><strong>Keyboard:</strong> Focus the grid; move with arrow keys. Press Enter or Space at a starting letter, move, then press again to select.</li></ul>
+      <button class="button button-primary" id="gotItBtn" type="button">Dive in →</button>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="winModal" hidden>
+    <section class="modal win-modal" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+      <div class="win-symbol" aria-hidden="true">✺</div><span class="section-kicker">THE SEA IS YOURS</span><h2 id="winTitle">Beautifully found!</h2><p id="winSubtitle">All eight words gathered.</p>
+      <div class="win-stats"><div><span>SCORE</span><strong id="winScore">0</strong></div><div><span>TIME</span><strong id="winTime">00:00</strong></div><div><span>WORDS</span><strong id="winWords">8 / 8</strong></div></div>
+      <p id="winExtra" class="win-extra"></p>
+      <textarea id="shareFallback" class="share-fallback" readonly rows="5" aria-label="Result summary to copy" hidden></textarea>
+      <div class="win-progression" aria-label="Round progression">
+        <div class="win-xp" id="winXP">+0 XP</div>
+        <div class="xp-track"><div id="winXpBar"></div></div>
+        <p id="winXpDetail">Level 1</p>
+        <p id="winMastery">Mastery gained</p>
+        <p id="winUnlocks">More treasures ahead</p>
+        <div class="win-next">NEXT UP: <strong id="winNext">New voyage</strong></div>
+      </div>
+      <div class="win-actions"><button id="continueBtn" class="button button-primary" type="button">Continue the voyage →</button><button id="bonusContinueBtn" class="button button-secondary bonus-continue" type="button">Keep searching for the mystery ✦</button><button id="replayBtn" class="button button-primary" type="button">Play again ↻</button><button id="themeBtn" class="button button-secondary" type="button">Choose a theme</button><button id="shareBtn" class="button button-secondary" type="button">Copy result</button></div>
+    </section>
+  </div>
+</body>
+</html>
